@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Earthquakes around Istanbul</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+    <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' />
+    <script src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1>Welcome to Istanbul Earthquake Monitoring</h1>
+    <p>Here you can find information about earthquakes in Istanbul since <%= locals.since %>.</p>
+    <div id="map"></div>
+    <script>
+                const map = new maplibregl.Map({
+                    container: 'map',
+                    style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL',
+                    center: [29, 41],
+                    zoom: 6
+                });
+                
+                const radius = 20;
+                
+                function pointOnCircle(lat, lon) {
+                    return {
+                        'type': 'Point',
+                        'coordinates': [lat, lon]
+                    };
+                }
+
+                function getMarkerColor(index,numElements) {
+                    const ratio = index / (numElements - 1);
+
+                    // Interpolate between blue (#0000FF) and red (#FF0000) based on the ratio
+                    const blue = Math.round((1 - ratio) * 255);
+                    const red = Math.round(ratio * 255);
+
+                    // Convert RGB values to hexadecimal and push the color to the array
+                    // const color = `#${blue.toString(16).padStart(2, '0')}00${red.toString(16).padStart(2, '0')}`;
+                    // Convert RGB values to %50 transparent hexadecimal and push the color to the array
+                    const color = `#${blue.toString(16).padStart(2, '0')}00${red.toString(16).padStart(2, '0')}80`;
+                    return color;
+                }
+                
+                var index = 0;
+                
+                var circleElements = [];
+                <% data.forEach(function(earthquake) { %>
+                    var circleElement = document.createElement('div');
+                    var r = Math.round(Math.pow(2,<%= earthquake.magnitude %>));
+                    console.log(`${r}px`);
+                    circleElement.style.width = `${r}px`; // Set the width as the diameter
+                    circleElement.style.height = `${r}px`; // Set the height as the diameter
+                    circleElement.style.borderRadius = '50%'; // Make it a circle by setting border radius to 50%
+                    circleElement.style.backgroundColor = getMarkerColor(index,<%= data.length %>); // Set background color with transparency
+                    
+                    (function(index) {
+                        circleElement.addEventListener('mouseover', function() {
+                            // Show corresponding entry in the table
+                            document.querySelector(`.item-${index}`).classList.add('highlighted');
+                        });
+
+                        circleElement.addEventListener('mouseout', function() {
+                            // Hide corresponding entry in the table
+                            document.querySelector(`.item-${index}`).classList.remove('highlighted');
+                        });
+                    })(index);
+
+                    circleElements.push(circleElement);
+                    
+                    var marker = new maplibregl.Marker({element: circleElements[index]})
+                    .setLngLat([<%= earthquake.longitude %>, <%= earthquake.latitude %>])
+                    .addTo(map);
+                    index += 1;
+                    <% }); %>
+                    </script>
+
+                    <div class="color-spectrum">
+                        <div class="label-container">
+                            <span> ← Newest  -  Oldest → </span>
+                        </div>
+                    </div>
+
+                    <table>
+                    <thead>
+                        <tr>
+                            <th>Magnitude</th>
+                            <th>Date</th>
+                            <th>Location</th>
+                            <th>Place</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% for( let index = 0; index < data.length; index++ ) { %>
+                            <tr class="item-<%= index %>">
+                                <td><%= data[index]["magnitude"] %></td>
+                                <td><%= data[index]["time"] %></td>
+                                <td><%= data[index]["location"] %></td>
+                                <td><%= data[index]["place"] %></td>
+                            </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+</body>
+</html>

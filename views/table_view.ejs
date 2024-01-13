@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Istanbul Depremleri</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</head>
+<body>
+    <h1>Welcome to Istanbul Earthquake Monitoring</h1>
+    <p>Here you can find information about earthquakes in Istanbul since <%= locals.since %>.</p>
+            <table>
+            <thead>
+                <tr>
+                    <th>Magnitude</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Place</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for( let index = 0; index < data.length; index++ ) { %>
+                    <tr>
+                        <td><%= data[index]["magnitude"] %></td>
+                        <td><%= data[index]["time"] %></td>
+                        <td><%= data[index]["location"] %></td>
+                        <td><%= data[index]["place"] %></td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+</body>
+</html>
